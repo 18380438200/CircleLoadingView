@@ -6,11 +6,8 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import androidx.annotation.Nullable;
-
-import javax.security.auth.login.LoginException;
 
 /**
  * create by libo
@@ -25,7 +22,7 @@ public class CircleProgressView extends View {
     /**
      * 进度圆环paint
      */
-    private Paint progressPaint;
+    private Paint progressPaint, smallCirclePaint;
     private Paint textPaint1, textPaint2;
     /**
      * 背景圆环半径
@@ -63,6 +60,9 @@ public class CircleProgressView extends View {
         bgPaint.setStyle(Paint.Style.STROKE);
         bgPaint.setStrokeWidth(10);
         bgPaint.setAntiAlias(true);
+
+        smallCirclePaint = new Paint();
+        smallCirclePaint.setColor(getResources().getColor(R.color.white));
     }
 
     private void setProgressPaint() {
@@ -81,7 +81,7 @@ public class CircleProgressView extends View {
 
         textPaint2 = new Paint();
         textPaint2.setColor(getResources().getColor(R.color.black));
-        textPaint2.setTextSize(40);
+        textPaint2.setTextSize(44);
         textPaint2.setAntiAlias(true);
     }
 
@@ -100,15 +100,15 @@ public class CircleProgressView extends View {
 
         Rect contentRect = new Rect();
         //画中心文字
-        content = "当前" + curPercentProgress + "M";
+        content = "当前" + curPercentProgress * 2 + "M";
         //将文本居中显示，需要获取文本的宽度，再计算左右边距
         //获取文本宽度，高度：  getTextBounds 是将TextView 的文本放入一个Rect矩形中， 测量TextView的高度和宽度  .witdh()  .height()获取
         textPaint1.getTextBounds(content, 0, content.length(), contentRect);
-        canvas.drawText(content, (getWidth()-contentRect.width())/2, (getHeight()-contentRect.height())/2, textPaint1);
+        canvas.drawText(content, (getWidth() - contentRect.width()) / 2, (getHeight() - contentRect.height()) / 2, textPaint1);
 
         fixText = "垃圾文件";
         textPaint2.getTextBounds(fixText, 0, fixText.length(), contentRect);
-        canvas.drawText(fixText,(getWidth()-contentRect.width())/2, (getHeight()+contentRect.height()*2)/2, textPaint2);
+        canvas.drawText(fixText, (getWidth() - contentRect.width()) / 2, (getHeight() + contentRect.height() * 2) / 2, textPaint2);
 
         //画进度圆弧
         /**
@@ -122,12 +122,13 @@ public class CircleProgressView extends View {
         RectF rectFProgress = new RectF(padding, padding, padding + bgCircleWidth, padding + bgCircleWidth);
         canvas.drawArc(rectFProgress, -90, curPercentProgress * 360 / 100, false, progressPaint);
 
-        drawThumb(canvas, bgCircleWidth/2);
+        drawThumb(canvas, bgCircleWidth / 2);
 
     }
 
     /**
      * 更新当前进度
+     *
      * @param progress 进度值范围 0-100
      */
     public void updateProgress(int progress) {
@@ -141,14 +142,16 @@ public class CircleProgressView extends View {
 
     private void drawThumb(Canvas canvas, int r) {
         //画终端同心圆
-        float centerX = getWidth()/2;
-        float centerY = getHeight()/2;
+        float centerX = getWidth() / 2;
+        float centerY = getHeight() / 2;
         float angle = (float) (curPercentProgress * 360 / 100 * Math.PI / 180);  // *Math.PI/180将角度转为弧度，PI为180度
 
         //需要将圆实时画在圆进度轨迹上，简单地用到了三角函数计算，(centerX,centerY)为原点，r为半径，轨迹方程为x^2+y^2=r^2; x=sin(angle),y=cos(angle)
-        float x = (float) (centerX + r*Math.sin(angle));
-        float y =  (float) (centerY - r*Math.cos(angle));
-        canvas.drawCircle(x, y, dp2px(getContext(), 4),progressPaint);
+        float x = (float) (centerX + r * Math.sin(angle));
+        float y = (float) (centerY - r * Math.cos(angle));
+        canvas.drawCircle(x, y, dp2px(getContext(), 4), progressPaint);
+
+        canvas.drawCircle(x, y, dp2px(getContext(), 3), smallCirclePaint);
     }
 
     public static int dp2px(Context context, int dp) {

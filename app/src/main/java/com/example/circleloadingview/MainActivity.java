@@ -12,13 +12,13 @@ public class MainActivity extends AppCompatActivity {
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(@NonNull Message msg) {
-            progress += 10;
+            progress += 1;
             circleProgressView.updateProgress(progress);
             if (progress == 100) {
                 handler.removeMessages(0);
             }
 
-            handler.sendEmptyMessageDelayed(0, 1000);
+            handler.sendEmptyMessageDelayed(0, 50);
         }
     };
 
