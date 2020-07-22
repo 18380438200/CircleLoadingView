@@ -1,13 +1,26 @@
 package com.example.circleloadingview;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
-import android.os.CountDownTimer;
-import android.util.Log;
+import android.os.Handler;
+import android.os.Message;
 
 public class MainActivity extends AppCompatActivity {
     private CircleProgressView circleProgressView;
+    private int progress = 0;
+    private Handler handler = new Handler() {
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            progress += 10;
+            circleProgressView.updateProgress(progress);
+            if (progress == 100) {
+                handler.removeMessages(0);
+            }
+
+            handler.sendEmptyMessageDelayed(0, 1000);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -16,19 +29,6 @@ public class MainActivity extends AppCompatActivity {
 
         circleProgressView = findViewById(R.id.progressview);
 
-        final int totalTime = 10000;
-        new CountDownTimer(totalTime,1000) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                int progress = (int) ((totalTime-millisUntilFinished) * 100 / totalTime);
-                Log.i("minfo", progress + "");
-                circleProgressView.updateProgress(progress);
-            }
-
-            @Override
-            public void onFinish() {
-
-            }
-        }.start();
+        handler.sendEmptyMessageDelayed(0, 1000);
     }
 }

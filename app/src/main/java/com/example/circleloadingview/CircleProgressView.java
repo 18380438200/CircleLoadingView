@@ -3,10 +3,14 @@ package com.example.circleloadingview;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import androidx.annotation.Nullable;
+
+import javax.security.auth.login.LoginException;
 
 /**
  * create by libo
@@ -35,6 +39,7 @@ public class CircleProgressView extends View {
      * 文字显示内容
      */
     private String content;
+    private String fixText;
 
     public CircleProgressView(Context context) {
         super(context);
@@ -56,7 +61,7 @@ public class CircleProgressView extends View {
         bgPaint = new Paint();
         bgPaint.setColor(getResources().getColor(R.color.white));
         bgPaint.setStyle(Paint.Style.STROKE);
-        bgPaint.setStrokeWidth(8);
+        bgPaint.setStrokeWidth(10);
         bgPaint.setAntiAlias(true);
     }
 
@@ -64,7 +69,7 @@ public class CircleProgressView extends View {
         progressPaint = new Paint();
         progressPaint.setColor(getResources().getColor(R.color.orange));
         progressPaint.setStyle(Paint.Style.STROKE);
-        progressPaint.setStrokeWidth(10);
+        progressPaint.setStrokeWidth(14);
         progressPaint.setAntiAlias(true);
     }
 
@@ -87,17 +92,23 @@ public class CircleProgressView extends View {
         //圆直径
         int bgCircleWidth = dp2px(getContext(), bgRadus * 2);
         //圆与矩形外边距
-        int padding = (getMeasuredWidth() - bgCircleWidth) / 2;
+        int padding = (getWidth() - bgCircleWidth) / 2;
 
         //居中画背景圆环
         RectF rectF = new RectF(padding, padding, padding + bgCircleWidth, padding + bgCircleWidth);
         canvas.drawArc(rectF, -90, 360, false, bgPaint);
 
+        Rect contentRect = new Rect();
         //画中心文字
         content = "当前" + curPercentProgress + "M";
-        canvas.drawText(content,getMeasuredWidth() / 3, getMeasuredHeight() / 2, textPaint1);
+        //将文本居中显示，需要获取文本的宽度，再计算左右边距
+        //获取文本宽度，高度：  getTextBounds 是将TextView 的文本放入一个Rect矩形中， 测量TextView的高度和宽度  .witdh()  .height()获取
+        textPaint1.getTextBounds(content, 0, content.length(), contentRect);
+        canvas.drawText(content, (getWidth()-contentRect.width())/2, (getHeight()-contentRect.height())/2, textPaint1);
 
-        canvas.drawText("垃圾文件",getMeasuredWidth() / 3, getMeasuredHeight() / 2 + 55, textPaint2);
+        fixText = "垃圾文件";
+        textPaint2.getTextBounds(fixText, 0, fixText.length(), contentRect);
+        canvas.drawText(fixText,(getWidth()-contentRect.width())/2, (getHeight()+contentRect.height()*2)/2, textPaint2);
 
         //画进度圆弧
         /**
@@ -111,9 +122,8 @@ public class CircleProgressView extends View {
         RectF rectFProgress = new RectF(padding, padding, padding + bgCircleWidth, padding + bgCircleWidth);
         canvas.drawArc(rectFProgress, -90, curPercentProgress * 360 / 100, false, progressPaint);
 
+        drawThumb(canvas, bgCircleWidth/2);
 
-        //画终端同心圆
-        
     }
 
     /**
@@ -127,6 +137,18 @@ public class CircleProgressView extends View {
 
         curPercentProgress = progress;
         invalidate();
+    }
+
+    private void drawThumb(Canvas canvas, int r) {
+        //画终端同心圆
+        float centerX = getWidth()/2;
+        float centerY = getHeight()/2;
+        float angle = (float) (curPercentProgress * 360 / 100 * Math.PI / 180);  // *Math.PI/180将角度转为弧度，PI为180度
+
+        //需要将圆实时画在圆进度轨迹上，简单地用到了三角函数计算，(centerX,centerY)为原点，r为半径，轨迹方程为x^2+y^2=r^2; x=sin(angle),y=cos(angle)
+        float x = (float) (centerX + r*Math.sin(angle));
+        float y =  (float) (centerY - r*Math.cos(angle));
+        canvas.drawCircle(x, y, dp2px(getContext(), 4),progressPaint);
     }
 
     public static int dp2px(Context context, int dp) {
